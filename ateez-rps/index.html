@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATEEZ 组合喜好表</title>
+<style>
+:root{--bg:#f7f7f8;--ink:#161616;--line:#d3d3d3;--red:#f5424c;--yellow:#ffc83d;--green:#36c65a;--cyan:#27c9d7;--gray:#aaa;--purple:#b955f5;--black:#111}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans KR","Malgun Gothic",sans-serif}
+main{max-width:1120px;margin:0 auto;padding:34px 22px 28px}h1{text-align:center;font-size:clamp(25px,4vw,36px);letter-spacing:.02em;margin:0 0 10px}.subtitle{text-align:center;color:#666;font-size:14px;margin:0 0 26px}
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:0 auto 28px}.chip{border:2px solid transparent;border-radius:12px;padding:10px 17px;font-weight:750;font-size:14px;cursor:pointer;box-shadow:0 1px 2px #0002;transition:transform .12s,border-color .12s}.chip:hover{transform:translateY(-2px)}.chip.active{border-color:#111;box-shadow:0 0 0 2px #fff,0 0 0 4px #111}.red{background:var(--red);color:#fff}.yellow{background:var(--yellow);color:#222}.green{background:var(--green);color:#fff}.cyan{background:var(--cyan);color:#111}.gray{background:var(--gray);color:#111}.purple{background:var(--purple);color:#fff}.black{background:var(--black);color:#fff}
+.tools{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;margin:-12px 0 18px}.tool{border:1px solid #bbb;background:#fff;border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer}.tool:hover{background:#eee}.hint{font-size:13px;color:#555;text-align:center;min-height:21px;margin-bottom:8px}
+.table-wrap{overflow:auto;background:white;border:1px solid var(--line);box-shadow:0 4px 18px #0000000a}table{border-collapse:collapse;width:100%;min-width:720px;table-layout:fixed}th,td{border:1px solid var(--line);text-align:center;height:64px;padding:6px;font-size:clamp(16px,2vw,21px)}thead th,tbody th{background:#ededed;font-weight:800}thead th:first-child,tbody th{width:12%}td{cursor:pointer;transition:filter .1s}td:hover{filter:brightness(.94);outline:2px solid #555;outline-offset:-2px}td.blank{cursor:default;background:#fafafa}td[contenteditable="true"]{cursor:text;outline:2px dashed #555;outline-offset:-3px}.footer{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#666;font-size:12px;margin-top:12px}
+@media(max-width:700px){main{padding:24px 12px}.chip{padding:9px 12px}.footer{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main>
+ <h1>ATEEZ 组合喜好表</h1>
+ <p class="subtitle">先选喜好标签，再点击组合格标记颜色；悬停可查看常见 CP 名称，修改保存在当前浏览器</p>
+ <nav class="legend" aria-label="喜好标签">
+  <button class="chip red active" data-color="red">本命</button><button class="chip yellow" data-color="yellow">感兴趣</button><button class="chip green" data-color="green">有好感</button><button class="chip cyan" data-color="cyan">还不错</button><button class="chip gray" data-color="gray">无感</button><button class="chip purple" data-color="purple">看情况</button><button class="chip black" data-color="black">雷区</button>
+ </nav>
+ <div class="tools"><button class="tool" id="edit">编辑组合简称</button><button class="tool" id="download">下载 CSV</button><button class="tool" id="reset">恢复初始表格</button></div>
+ <div class="hint" id="hint">当前选择：本命 · 点击表格中的组合进行标记</div>
+ <div class="table-wrap"><table id="matrix" aria-label="ATEEZ组合喜好表"></table></div>
+ <div class="footer"><span>韩文简称按方向区分；悬停可查看常见 CP 名称。各平台叫法可能不同。</span><span><a href="https://atiny.fandom.com/wiki/Category:Pairings" target="_blank" rel="noopener">CP 名称参考</a> · ATEEZ</span></div>
+</main>
+<script>
+const members=['弘中','星化','润浩','吕尚','伞','旼琦','友荣','钟浩'];
+// Keep the direction-specific Korean tags used in fan charts; they are not
+// reliably convertible by translating each syllable into a Chinese initial.
+const pairs=[
+ ['', '성홍','윤홍','상홍','낫홍','솜홍','윙홍','쫑홍'],
+ ['홍성','','윤성','상성','낫성','밍성','윙성','쫑성'],
+ ['몽윤','설윤','','상윤','낫윤','밍윤','윙윤','쫑윤'],
+ ['홍상','설상','윤여','','낫여','솜여','윙상','쫑상'],
+ ['홍낫','설낫','윤낫','여낫','','밍낫','윙낫','쫑낫'],
+ ['홍솜','설밍','윤밍','상밍','낫밍','','윙밍','쫑밍'],
+ ['홍윙','설윙','윤윙','상윙','낫윙','밍윙','','쫑윙'],
+ ['홍쫑','설쫑','윤쫑','상쫑','낫쫑','솜쫑','윙쫑','']
+];
+const commonCp={
+ '0-1':'Seongjoong / MATZ','0-2':'HoHong','0-3':'HongSang','0-4':'HongSan','0-5':'HonGi / MinJoong','0-6':'Topaz','0-7':'Jjong',
+ '1-2':'YunHwa','1-3':'SeongSang','1-4':'SeongSan','1-5':'MinHwa','1-6':'WooHwa','1-7':'JongHwa',
+ '2-3':'YunSang','2-4':'YunSan','2-5':'YunGi','2-6':'WooYun','2-7':'2ho',
+ '3-4':'SanSang','3-5':'MinSang','3-6':'WooSang','3-7':'JongSang',
+ '4-5':'SanGi','4-6':'WooSan / Woosan (우산)','4-7':'JongSan',
+ '5-6':'WooGi','5-7':'JonGi','6-7':'JongYoung'
+};
+const original={pairs,colors:{}};
+const key='ateez-rps-taste-table-zh-v2';let data;try{const saved=JSON.parse(localStorage.getItem(key));data=saved?{pairs:structuredClone(pairs),colors:saved.colors||{}}:structuredClone(original)}catch{data=structuredClone(original)}
+let selected='red',editing=false;
+const table=document.querySelector('#matrix'),hint=document.querySelector('#hint');
+const chinese={red:'本命',yellow:'感兴趣',green:'有好感',cyan:'还不错',gray:'无感',purple:'看情况',black:'雷区'};
+function save(){localStorage.setItem(key,JSON.stringify(data))}
+function render(){table.innerHTML='';const head=document.createElement('thead'),hr=document.createElement('tr');hr.append(document.createElement('th'));members.forEach(n=>{const th=document.createElement('th');th.textContent=n;hr.append(th)});head.append(hr);table.append(head);const body=document.createElement('tbody');members.forEach((name,i)=>{const tr=document.createElement('tr'),th=document.createElement('th');th.textContent=name;tr.append(th);members.forEach((_,j)=>{const td=document.createElement('td'),id=`${i}-${j}`;td.textContent=data.pairs[i][j];td.dataset.id=id;if(i===j){td.className='blank';td.setAttribute('aria-label','');}else{const cpKey=`${Math.min(i,j)}-${Math.max(i,j)}`;td.title=`常见 CP 名：${commonCp[cpKey]}（该格保留方向标签：${data.pairs[i][j]}）`;const color=data.colors[id];if(color)td.classList.add(color);td.contentEditable=editing?'true':'false';td.addEventListener('click',()=>{if(editing)return;if(data.colors[id]===selected)delete data.colors[id];else data.colors[id]=selected;save();render()});td.addEventListener('input',()=>{data.pairs[i][j]=td.textContent;save()})}tr.append(td)});body.append(tr)});table.append(body)}
+document.querySelectorAll('.chip').forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.color;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x===btn));hint.textContent=`当前选择：${chinese[selected]} · 点击表格中的组合进行标记`;}));
+document.querySelector('#edit').addEventListener('click',e=>{editing=!editing;e.currentTarget.textContent=editing?'完成编辑':'编辑组合简称';hint.textContent=editing?'现在可以直接修改格子中的组合简称。':'简称已保存；选择标签可继续上色。';render()});
+document.querySelector('#reset').addEventListener('click',()=>{if(confirm('恢复为初始表格？这会清除当前颜色和简称修改。')){data=structuredClone(original);save();render()}});
+document.querySelector('#download').addEventListener('click',()=>{const rows=[['',...members],...members.map((m,i)=>[m,...data.pairs[i]])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='ATEEZ_组合喜好表.csv';a.click();URL.revokeObjectURL(a.href)});
+render();
+</script>
+</body>
+</html>
